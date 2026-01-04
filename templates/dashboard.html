@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Dashboard - ITMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-container h1 {
+            text-align: center;
+            color: #eee;
+            margin-bottom: 30px;
+        }
+
+        .traffic-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            gap: 20px;
+        }
+
+        .lane-container {
+            display: flex;
+            background-color: #282828;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #444;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- Light Panel (Left Side) --- */
+        .light-panel {
+            background-color: #3a3a3a;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .light {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #111;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        /* "Off" states */
+        .light.red    { background-color: #4d0000; }
+        .light.orange { background-color: #523c00; }
+        .light.green  { background-color: #004d00; }
+
+        /* "On" states */
+        .light.on.red    { background-color: #ff0000; box-shadow: 0 0 20px #ff0000; }
+        .light.on.orange { background-color: #ff9900; box-shadow: 0 0 20px #ff9900; }
+        .light.on.green  { background-color: #00ff00; box-shadow: 0 0 20px #00ff00; }
+        
+        /* --- Video Box (Right Side) --- */
+        .video-box {
+            flex-grow: 1; /* Take up remaining space */
+            position: relative; /* Needed for the overlays */
+            background-color: #000;
+        }
+        
+        .video-box img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .video-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .stats-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 12px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .stats-overlay span {
+            font-weight: bold;
+            color: #00ff00; /* Green for stats */
+        }
+        
+        .stats-overlay #ambulance-1,
+        .stats-overlay #ambulance-2,
+        .stats-overlay #ambulance-3,
+        .stats-overlay #ambulance-4 {
+            color: #ffc107; /* Yellow for ambulance status */
+        }
+
+        /* --- Controls (Bottom Buttons) --- */
+        .controls {
+            text-align: center;
+            padding: 30px 0 10px 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        /* Using the button style from your project_home.html */
+        .button {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 24px;
+            background: linear-gradient(90deg, #6d28d9, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+        
+        .button:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* --- Responsive for smaller screens --- */
+        @media (max-width: 900px) {
+            .traffic-grid {
+                grid-template-columns: 1fr; /* Stack to 1 column */
+            }
+            .light {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+    </head>
+<body>
+    <div class="dashboard-container">
+        <h1>Live Traffic Dashboard</h1>
+        
+        <div class="traffic-grid">
+            
+            <div class="lane-container">
+                <div class="light-panel" id="light-panel-1">
+                    <div class="light red" id="light-1-red"></div>
+                    <div class="light orange" id="light-1-orange"></div> 
+                    <div class="light green" id="light-1-green"></div>
+                </div>
+                <div class="video-box">
+                    <img src="{{ url_for('video_feed', lane_id=1) }}" width="100%">
+                    <div class="video-label">Lane 1</div>
+                    <div class="stats-overlay">
+                        Density: <span id="density-1">0</span> | Ambulance: <span id="ambulance-1">No</span> | Time: <span id="timer-1">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lane-container">
+                <div class="light-panel" id="light-panel-4">
+                    <div class="light red" id="light-4-red"></div>
+                    <div class="light orange" id="light-4-orange"></div>
+                    <div class="light green" id="light-4-green"></div>
+                </div>
+                <div class="video-box">
+                    <img src="{{ url_for('video_feed', lane_id=4) }}" width="100%">
+                    <div class="video-label">Lane 4</div>
+                    <div class="stats-overlay">
+                        Density: <span id="density-4">0</span> | Ambulance: <span id="ambulance-4">No</span> | Time: <span id="timer-4">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lane-container">
+                <div class="light-panel" id="light-panel-2">
+                    <div class="light red" id="light-2-red"></div>
+                    <div class="light orange" id="light-2-orange"></div>
+                    <div class="light green" id="light-2-green"></div>
+                </div>
+                <div class="video-box">
+                    <img src="{{ url_for('video_feed', lane_id=2) }}" width="100%">
+                    <div class="video-label">Lane 2</div>
+                    <div class="stats-overlay">
+                        Density: <span id="density-2">0</span> | Ambulance: <span id="ambulance-2">No</span> | Time: <span id="timer-2">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lane-container">
+                <div class="light-panel" id="light-panel-3">
+                    <div class="light red" id="light-3-red"></div>
+                    <div class="light orange" id="light-3-orange"></div>
+                    <div class="light green" id="light-3-green"></div>
+                </div>
+                <div class="video-box">
+                    <img src="{{ url_for('video_feed', lane_id=3) }}" width="100%">
+                    <div class="video-label">Lane 3</div>
+                    <div class="stats-overlay">
+                        Density: <span id="density-3">0</span> | Ambulance: <span id="ambulance-3">No</span> | Time: <span id="timer-3">--</span>
+                    </div>
+                </div>
+            </div>
+
+        </div> 
+        
+        <div class="controls">
+            <a href="{{ url_for('analysis_page') }}" class="button">View Analysis</a>
+            <a href="{{ url_for('upload_page') }}" class="button">Upload New Videos</a>
+            <a href="/" class="button">Back to Home</a>
+        </div>
+    </div> 
+    
+    <script>
+        /**
+         * Updates the HTML elements (lights, text, timer) for a specific lane.
+         */
+        function updateUI(laneId, status, density, ambulance, timeRemaining) {
+            // Update Text Stats
+            document.getElementById(`density-${laneId}`).innerText = density;
+            const ambulanceEl = document.getElementById(`ambulance-${laneId}`);
+            ambulanceEl.innerText = ambulance ? 'YES!' : 'No';
+            ambulanceEl.style.color = ambulance ? '#ff0000' : '#ffc107'; // Red if YES
+            ambulanceEl.style.fontWeight = ambulance ? 'bold' : 'normal';
+
+
+            // Update Timer
+            const timerElement = document.getElementById(`timer-${laneId}`);
+            if (timeRemaining !== undefined && timeRemaining >= 0) {
+                timerElement.innerText = Math.round(timeRemaining); // Round to whole number
+            } else {
+                timerElement.innerText = '--';
+            }
+
+            // Update Traffic Lights
+            const redLight = document.getElementById(`light-${laneId}-red`);
+            const orangeLight = document.getElementById(`light-${laneId}-orange`);
+            const greenLight = document.getElementById(`light-${laneId}-green`);
+
+            // Turn all lights off first
+            redLight.classList.remove('on');
+            orangeLight.classList.remove('on');
+            greenLight.classList.remove('on');
+
+            // Turn the correct one on
+            if (status === 'red') {
+                redLight.classList.add('on');
+            } else if (status === 'green') {
+                greenLight.classList.add('on');
+            } else if (status === 'orange') {
+                orangeLight.classList.add('on');
+            }
+        }
+
+        /**
+         * Fetches the latest system state from the Flask '/status_api' endpoint
+         * and updates the UI for all four lanes.
+         */
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/status_api');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json(); 
+                
+                for (let i = 1; i <= 4; i++) {
+                    if (data[i]) {
+                        const lane = data[i];
+                        updateUI(i, lane.status, lane.density, lane.ambulance, lane.time_remaining);
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error fetching status:", error);
+            }
+        }
+
+        // Poll the API every 1 second (1000 milliseconds)
+        setInterval(fetchStatus, 1000);
+
+        // Run the function once immediately on page load
+        fetchStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Dashboard - ITMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .analysis-container {
+            max-width: 1200px;
+            margin: auto;
+            text-align: center;
+            padding: 20px;
+        }
+        .analysis-container h1 {
+            color: #e0e7ff; /* Lighter color for header */
+        }
+        .chart-container {
+            width: 80%;
+            margin: 40px auto;
+            padding: 20px;
+            /* background: #fff; <-- This was the problem */
+            background: #2a2a57; /* Dark background to match theme */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid #4a4a8a;
+        }
+        .chart-container h2 {
+            color: #fff; /* White text for titles */
+        }
+        .chart-container p {
+            color: #ccc; /* Lighter gray text for descriptions */
+        }
+        .stats-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .stats-table th, .stats-table td {
+            /* border: 1px solid #ddd; <-- Too light */
+            border: 1px solid #4a4a8a;
+            padding: 12px;
+            text-align: left;
+            color: #fff; /* White text */
+        }
+        .stats-table th {
+            /* background-color: #f4f4f4; <-- Too light */
+            background-color: #3b3b7a;
+            font-size: 1.1em;
+            color: #e0e7ff;
+        }
+        .stats-table td {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #2a2a57;
+        }
+        
+        /* Chart.js specific dark theme overrides */
+        .chart-container canvas {
+            background-color: #2a2a57;
+        }
+        
+        /* Match control buttons from other pages */
+        .controls {
+            text-align: center;
+            padding: 30px 0 10px 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .button {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 24px;
+            background: linear-gradient(90deg, #6d28d9, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+        
+        .button:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+    </style>
+    </head>
+<body>
+    <div class="analysis-container">
+        <h1>Analysis Dashboard</h1>
+
+        <div class="chart-container">
+            <h2>Cumulative Vehicles Passed (Per Lane)</h2>
+            <p>Total vehicles counted when their lane's light turned red.</p>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Lane</th>
+                        <th>Cars</th>
+                        <th>Buses</th>
+                        <th>Trucks</th>
+                        <th>Motorcycles</th>
+                        <th>Ambulances</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="vehicle-counts-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="chart-container">
+            <h2>Current Traffic Density (Live)</h2>
+            <p>Live snapshot of vehicle count in each lane.</p>
+            <canvas id="densityChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>System Efficiency (Smart vs. Traditional)</h2>
+            <p>Compares the dynamic green light time (Smart) vs. a fixed 30-second timer (Traditional).</p>
+            <canvas id="efficiencyChart"></canvas>
+        </div>
+
+        <div class="controls">
+            <a href="{{ url_for('dashboard') }}" class="button">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        // --- Chart.js Chart Initialization ---
+        let densityChart, efficiencyChart;
+        const vehicleTypes = ['Car', 'Bus', 'Truck', 'Motorcycle', 'Ambulance'];
+
+        // Set default chart text color for dark mode
+        Chart.defaults.color = '#e0e7ff'; // Light purple/white for all text
+
+        // 1. Initialize Density Chart
+        const densityCtx = document.getElementById('densityChart').getContext('2d');
+        densityChart = new Chart(densityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Lane 1', 'Lane 2', 'Lane 3', 'Lane 4'],
+                datasets: [{
+                    label: 'Current Vehicle Density',
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: { color: '#e0e7ff' }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#4a4a8a' }
+                    },
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#4a4a8a' }
+                    }
+                }
+            }
+        });
+
+        // 2. Initialize Efficiency Chart
+        const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+        efficiencyChart = new Chart(efficiencyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Lane 1', 'Lane 2', 'Lane 3', 'Lane 4'],
+                datasets: [
+                    {
+                        label: 'Smart System (Dynamic Time)',
+                        data: [0, 0, 0, 0], // Will be filled by API
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    },
+                    {
+                        label: 'Traditional System (Fixed Time)',
+                        data: [30, 30, 30, 30], // Mock data for comparison
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: { color: '#e0e7ff' }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        title: { display: true, text: 'Green Light Time (seconds)', color: '#e0e7ff'},
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#4a4a8a' }
+                    },
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#4a4a8a' }
+                    }
+                }
+            }
+        });
+
+        // --- Data Fetching and Updating (No changes needed here) ---
+
+        /**
+         * Fetches data from the /api/analysis_data endpoint
+         */
+        async function fetchAnalysisData() {
+            try {
+                const response = await fetch('/api/analysis_data');
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+
+                // Update all 3 sections with the new data
+                updateVehicleTables(data.cumulative_counts);
+                updateDensityGraph(data.current_density);
+                updateEfficiencyGraph(data.last_green_times);
+
+            } catch (error) {
+                console.error("Error fetching analysis data:", error);
+            }
+        }
+
+        /**
+         * Updates the "Cumulative Vehicles" table
+         */
+        function updateVehicleTables(cumulativeData) {
+            const tableBody = document.getElementById('vehicle-counts-body');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            for (let i = 1; i <= 4; i++) {
+                const laneData = cumulativeData[i];
+                let total = 0;
+                
+                let rowHtml = `<tr><td><strong>Lane ${i}</strong></td>`;
+                
+                vehicleTypes.forEach(vehicle => {
+                    const count = laneData[vehicle] || 0;
+                    total += count;
+                    rowHtml += `<td>${count}</td>`;
+                });
+                
+                rowHtml += `<td>${total}</td></tr>`;
+                tableBody.innerHTML += rowHtml;
+            }
+        }
+
+        /**
+         * Updates the "Current Traffic Density" bar chart
+         */
+        function updateDensityGraph(densityData) {
+            const dataArray = [
+                densityData[1] || 0,
+                densityData[2] || 0,
+                densityData[3] || 0,
+                densityData[4] || 0
+            ];
+            densityChart.data.datasets[0].data = dataArray;
+            densityChart.update();
+        }
+
+        /**
+         * Updates the "System Efficiency" bar chart
+         */
+        function updateEfficiencyGraph(greenTimeData) {
+            const dataArray = [
+                greenTimeData[1] || 0,
+                greenTimeData[2] || 0,
+                greenTimeData[3] || 0,
+                greenTimeData[4] || 0
+            ];
+            // Update only the 'Smart System' dataset
+            efficiencyChart.data.datasets[0].data = dataArray;
+            efficiencyChart.update();
+        }
+
+        // Poll the API every 3 seconds (3000 milliseconds)
+        setInterval(fetchAnalysisData, 3000);
+        // Run once on page load
+        fetchAnalysisData();
+
+    </script>
+    </body>
+</html>

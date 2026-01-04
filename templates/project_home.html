@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - ITMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="logo">ITMS</div>
+            <div class="nav-links">
+                <span>Welcome, {{ session.username }}!</span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>ITMS Dashboard</h1>
+            <p>Manage live traffic feeds, view real-time analytics, and oversee the intelligent traffic control system.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('upload_page') }}" class="button primary">Start Project</a>
+                <a href="{{ url_for('logout') }}" class="button secondary">Logout</a>
+            </div>
+        </div>
+        <div class="wave">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39 -57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.83 C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <main class="content-section">
+        <section class="info-section">
+            <h2 class="section-title">✨ Project Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🚦</div>
+                    <h3>Dynamic Signal Control</h3>
+                    <p>Automatically adjusts green light duration based on real-time vehicle density, reducing unnecessary waiting times.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🚑</div>
+                    <h3>Ambulance Priority</h3>
+                    <p>Detects emergency vehicles and provides an immediate green light corridor to reduce response times and save lives.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🖥️</div>
+                    <h3>Live Dashboard</h3>
+                    <p>Monitor up to four lanes simultaneously with real-time video feeds, vehicle detection boxes, and traffic light status.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Data Analytics</h3>
+                    <p>View detailed graphs on vehicle flow, lane density, and system efficiency compared to traditional methods.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2 class="section-title">🔧 Tools & Technology</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🐍</div>
+                    <h3>Python & Flask</h3>
+                    <p>The backend is powered by Python with the robust and lightweight Flask web framework.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h3>YOLOv8 & OpenCV</h3>
+                    <p>State-of-the-art object detection using YOLOv8 and real-time video processing with OpenCV.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🌐</div>
+                    <h3>HTML, CSS, JS</h3>
+                    <p>A responsive and interactive frontend built with standard web technologies.</p>
+                </div>
+                 <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h3>Chart.js</h3>
+                    <p>Beautiful and dynamic charts for the analysis dashboard are rendered using Chart.js.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2 class="section-title">💡 Project Importance</h2>
+            <div class="importance-content">
+                <p><strong>Reduces Traffic Congestion:</strong> By intelligently managing signal times, the system minimizes bottlenecks and improves overall traffic flow, saving commuters valuable time.</p>
+                <p><strong>Enhances Emergency Response:</strong> Prioritizing ambulances is critical. This system clears a path automatically, which can be the difference between life and death in critical situations.</p>
+                <p><strong>Provides Data-Driven Insights:</strong> The analytics dashboard offers valuable data that city planners and traffic authorities can use to make informed decisions about infrastructure and traffic management strategies.</p>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Videos - ITMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Lane Videos</h1>
+        <p>Please upload one video file for each of the four lanes.</p>
+        
+        <form action="{{ url_for('upload_page') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="video1">Lane 1 Video:</label>
+                <input type="file" id="video1" name="video1" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <label for="video2">Lane 2 Video:</label>
+                <input type="file" id="video2" name="video2" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <label for="video3">Lane 3 Video:</label>
+                <input type="file" id="video3" name="video3" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <label for="video4">Lane 4 Video:</label>
+                <input type="file" id="video4" name="video4" accept="video/*" required>
+            </div>
+            <button type="submit" class="button">Upload and Start</button>
+        </form>
+    </div>
+</body>
+</html>
