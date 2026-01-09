@@ -1,6 +1,10 @@
 flask
-ultralytics
-opencv-python-headless
 numpy
 Pillow
 werkzeug
+opencv-python-headless
+
+# YOLO (CPU only)
+ultralytics
+torch==2.1.2
+torchvision==0.16.2
